@@ -30,21 +30,18 @@
 <div id="wallpaper"></div>
 
 <script>
-// 动漫图片数组（可以自行替换为其他可访问高清动漫图片URL）
-const animeImages = [
-  'https://i.imgur.com/6Q2ZfZl.jpg',
-  'https://i.imgur.com/1s4hR6M.jpg',
-  'https://i.imgur.com/1jR9kJp.jpg',
-  'https://i.imgur.com/Oz9tRwl.jpg',
-  'https://i.imgur.com/f4Jp7t0.jpg'
-];
-
 const wallpaper = document.getElementById('wallpaper');
 const intervalTime = 10000; // 每10秒切换
 
-function changeWallpaper() {
-  const randIndex = Math.floor(Math.random() * animeImages.length);
-  wallpaper.style.backgroundImage = `url('${animeImages[randIndex]}')`;
+async function changeWallpaper() {
+  try {
+    // 调用 waifu.pics API 获取随机动漫图片
+    const response = await fetch('https://api.waifu.pics/sfw/waifu');
+    const data = await response.json();
+    wallpaper.style.backgroundImage = `url('${data.url}')`;
+  } catch (err) {
+    console.error('获取图片失败', err);
+  }
 }
 
 // 初始化显示第一张
@@ -55,5 +52,3 @@ setInterval(changeWallpaper, intervalTime);
 </script>
 </body>
 </html>
-
-
