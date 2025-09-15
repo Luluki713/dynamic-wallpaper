@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iPad 多分类动漫动态壁纸（预加载循环版）</title>
+<title>iPad 全屏动漫+美女动态壁纸</title>
 
 <!-- iOS Web App 全屏 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,8 +37,15 @@
 <script>
 const wallpaper = document.getElementById('wallpaper');
 const intervalTime = 10000; // 每10秒切换
-const preloadCount = 5; // 预加载图片数量
-const categories = ['waifu', 'neko', 'shinobu']; // 可扩展分类
+const preloadCount = 5; // 初始预加载图片数量
+
+// 分类列表：动漫 + 美女
+const categories = [
+  { type: 'waifu', source: 'waifu.pics' },
+  { type: 'neko', source: 'waifu.pics' },
+  { type: 'shinobu', source: 'waifu.pics' },
+  { type: 'girl', source: 'unsplash' } // 美女
+];
 
 let preloadedImages = [];
 let currentIndex = 0;
@@ -53,11 +60,20 @@ function getRandomCategory() {
 async function preloadImage() {
   try {
     const category = getRandomCategory();
-    const response = await fetch(`https://api.waifu.pics/sfw/${category}`);
-    const data = await response.json();
+    let imgSrc = '';
+
+    if (category.source === 'waifu.pics') {
+      const response = await fetch(`https://api.waifu.pics/sfw/${category.type}`);
+      const data = await response.json();
+      imgSrc = data.url;
+    } else if (category.source === 'unsplash') {
+      // 获取随机美女照片
+      imgSrc = `https://source.unsplash.com/1920x1080/?portrait,girl&sig=${Math.floor(Math.random()*10000)}`;
+    }
+
     const img = new Image();
-    img.src = data.url;
-    await new Promise(resolve => { img.onload = resolve; }); // 确保图片加载完成
+    img.src = imgSrc;
+    await new Promise(resolve => { img.onload = resolve; });
     return img.src;
   } catch (err) {
     console.error('获取图片失败', err);
@@ -85,7 +101,7 @@ function changeWallpaper() {
     currentIndex = (currentIndex + 1) % preloadedImages.length;
   }, 500);
 
-  // 当快轮到最后一张时，异步再预加载新图片补充数组
+  // 异步补充下一张图片
   if (currentIndex === preloadedImages.length - 1) {
     preloadImage().then(src => {
       if (src) preloadedImages.push(src);
@@ -102,3 +118,4 @@ function changeWallpaper() {
 </script>
 </body>
 </html>
+
