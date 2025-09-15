@@ -43,13 +43,13 @@ let preloadedImages = [];
 let shownImages = new Set(); // 记录已显示过的图片
 let currentIndex = 0;
 
-// 预加载单张 SFW waifu 图片（确保不重复）
+// 预加载单张 NSFW waifu 图片（确保不重复）
 async function preloadImage() {
   try {
     let imgSrc;
     let unique = false;
     while (!unique) {
-      const response = await fetch('https://api.waifu.pics/sfw/waifu');
+      const response = await fetch('https://api.waifu.pics/nsfw/waifu');
       const data = await response.json();
       imgSrc = data.url;
       if (!preloadedImages.includes(imgSrc) && !shownImages.has(imgSrc)) unique = true;
