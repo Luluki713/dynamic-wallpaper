@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iPad 全屏 NSFW Waifu 动态壁纸</title>
+<title>iPad 全屏美女动态壁纸（无重复）</title>
 
 <!-- iOS Web App 全屏 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,21 +37,27 @@
 <script>
 const wallpaper = document.getElementById('wallpaper');
 const intervalTime = 10000; // 每10秒切换
-const preloadCount = 5; // 初始预加载图片数量
+const preloadCount = 10; // 初始预加载图片数量
 
 let preloadedImages = [];
+let shownImages = new Set(); // 记录已显示过的图片
 let currentIndex = 0;
 
-// 预加载单张 NSFW waifu 图片
+// 预加载单张 SFW waifu 图片（确保不重复）
 async function preloadImage() {
   try {
-    const response = await fetch('https://api.waifu.pics/nsfw/waifu');
-    const data = await response.json();
-    const imgSrc = data.url;
+    let imgSrc;
+    let unique = false;
+    while (!unique) {
+      const response = await fetch('https://api.waifu.pics/sfw/waifu');
+      const data = await response.json();
+      imgSrc = data.url;
+      if (!preloadedImages.includes(imgSrc) && !shownImages.has(imgSrc)) unique = true;
+    }
     const img = new Image();
     img.src = imgSrc;
-    await new Promise(resolve => { img.onload = resolve; });
-    return img.src;
+    await new Promise(resolve => img.onload = resolve);
+    return imgSrc;
   } catch (err) {
     console.error('获取图片失败', err);
     return null;
@@ -72,18 +78,21 @@ function changeWallpaper() {
   if (preloadedImages.length === 0) return;
   wallpaper.style.opacity = 0; // 淡出
   setTimeout(() => {
-    wallpaper.style.backgroundImage = `url('${preloadedImages[currentIndex]}')`;
+    const src = preloadedImages[currentIndex];
+    wallpaper.style.backgroundImage = `url('${src}')`;
     wallpaper.style.opacity = 1; // 淡入
-    wallpaper.style.transform = `scale(${1 + Math.random() * 0.05})`; // 轻微缩放
-    currentIndex = (currentIndex + 1) % preloadedImages.length;
-  }, 500);
+    wallpaper.style.transform = `scale(${1 + Math.random() * 0.05})`; // 缩放
+    shownImages.add(src); // 记录已显示过的图片
 
-  // 异步补充下一张图片
-  if (currentIndex === preloadedImages.length - 1) {
-    preloadImage().then(src => {
-      if (src) preloadedImages.push(src);
-    });
-  }
+    currentIndex = (currentIndex + 1) % preloadedImages.length;
+
+    // 当快轮完数组时异步补充新图片
+    if (currentIndex === preloadedImages.length - 1) {
+      preloadImage().then(newSrc => {
+        if (newSrc) preloadedImages.push(newSrc);
+      });
+    }
+  }, 500);
 }
 
 // 初始化
@@ -95,4 +104,3 @@ function changeWallpaper() {
 </script>
 </body>
 </html>
-
